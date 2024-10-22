@@ -1,93 +1,120 @@
 from collections import deque
-import os
+import heapq
+import random
 
-# Función para obtener las celdas adyacentes que tienen valor 1
+# Función para obtener posiciones adyacentes
 def getAdj(tablero, x, y):
-    adjacentes = []
-    filas = len(tablero)
-    columnas = len(tablero[0])
+    adyacentes = []
+    direcciones = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # arriba, abajo, izquierda, derecha
+    for dx, dy in direcciones:
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < len(tablero) and 0 <= ny < len(tablero[0]) and tablero[nx][ny] == 1:
+            adyacentes.append((nx, ny))
+    return adyacentes
 
-    # Verificar las celdas adyacentes (izquierda, derecha, arriba, abajo)
-    if y - 1 >= 0 and tablero[x][y-1] == 1:
-        adjacentes.append((x, y-1))
-    if y + 1 < columnas and tablero[x][y+1] == 1:
-        adjacentes.append((x, y+1))
-    if x - 1 >= 0 and tablero[x-1][y] == 1:
-        adjacentes.append((x-1, y))
-    if x + 1 < filas and tablero[x+1][y] == 1:
-        adjacentes.append((x+1, y))
+# BFS simple para Clyde
+def bfs(tablero, inicio, objetivo):
+    fila, columna = len(tablero), len(tablero[0])
+    visitados = [[False for _ in range(columna)] for _ in range(fila)]
+    cola = deque([(inicio, [])])
+    visitados[inicio[0]][inicio[1]] = True
 
-    return adjacentes
-
-# Función para generar la lista de adyacencias, solo considerando celdas con valor 1
-def generar_lista_adyacencias(tablero):
-    lista_adyacencias = {}
-    filas = len(tablero)
-    columnas = len(tablero[0])
-
-    # Recorremos cada celda del tablero
-    for x in range(filas):
-        for y in range(columnas):
-            # Solo procesamos las celdas con valor 1
-            if tablero[x][y] == 1:
-                adyacentes = getAdj(tablero, x, y)
-                if adyacentes:  # Solo agregar si hay adyacencias
-                    lista_adyacencias[(x, y)] = adyacentes
-    
-    return lista_adyacencias
-
-# Función de Búsqueda en Anchura (BFS) para encontrar el camino más corto entre dos nodos
-def bfs_caminos(tablero, inicio, objetivo):
-    # Generar el grafo de adyacencias a partir del tablero
-    grafo = generar_lista_adyacencias(tablero)
-    
-    # Inicializar la cola de BFS y el diccionario de predecesores
-    cola = deque([inicio])
-    predecesores = {inicio: None}  # Guarda de dónde viene cada nodo
-
-    # Explorar el grafo utilizando BFS
     while cola:
-        nodo_actual = cola.popleft()
-        
-        # Si encontramos el objetivo, reconstruimos el camino
-        if nodo_actual == objetivo:
-            camino = []
-            while nodo_actual is not None:
-                camino.append(nodo_actual)
-                nodo_actual = predecesores[nodo_actual]
-            return camino[::-1]  # Devolvemos el camino en el orden correcto
-        
-        # Explorar los nodos vecinos
-        for vecino in grafo.get(nodo_actual, []):
-            if vecino not in predecesores:  # Solo explorar nodos no visitados
-                predecesores[vecino] = nodo_actual
-                cola.append(vecino)
+        (x, y), camino = cola.popleft()
+
+        if (x, y) == objetivo:
+            return camino + [(x, y)]  # Devuelve el camino hasta el objetivo
+
+        for nx, ny in getAdj(tablero, x, y):
+            if not visitados[nx][ny]:
+                visitados[nx][ny] = True
+                cola.append(((nx, ny), camino + [(x, y)]))
     
-    # Si no se encuentra un camino, devolvemos None
-    return None
+    return []
+
+# Implementación de búsqueda greedy
+def greedy_bfs(tablero, inicio, objetivo):
+    visitados = set()
+    cola = []
+    heapq.heappush(cola, (heuristica(inicio, objetivo), inicio, []))
+
+    while cola:
+        _, actual, camino = heapq.heappop(cola)
+
+        if actual == objetivo:
+            return camino[1] if len(camino) > 1 else actual  # Moverse al siguiente paso
+
+        if actual not in visitados:
+            visitados.add(actual)
+            for vecino in getAdj(tablero, actual[0], actual[1]):
+                if vecino not in visitados:
+                    nuevo_camino = camino + [actual]
+                    heapq.heappush(cola, (heuristica(vecino, objetivo), vecino, nuevo_camino))
+    
+    return inicio  # No se encontró camino, no moverse
+
+# Implementación de búsqueda bidireccional para Pinky
+def bidirectional_search(tablero, inicio, objetivo):
+    visitados_inicial, visitados_objetivo = set(), set()
+    cola_inicial, cola_objetivo = deque([(inicio, [])]), deque([(objetivo, [])])
+    
+    # Mapa para registrar los caminos desde ambos lados
+    caminos_inicial, caminos_objetivo = {inicio: []}, {objetivo: []}
+
+    while cola_inicial and cola_objetivo:
+        # Búsqueda desde el inicio
+        actual_inicio, camino_inicio = cola_inicial.popleft()
+        if actual_inicio in visitados_objetivo:
+            # Combinar los caminos desde ambos lados y devolver el primer paso
+            camino_objetivo = caminos_objetivo[actual_inicio]
+            camino_total = camino_inicio + camino_objetivo[::-1]  # Unir los caminos
+            return camino_total[1] if len(camino_total) > 1 else actual_inicio
+        visitados_inicial.add(actual_inicio)
+        for vecino in getAdj(tablero, actual_inicio[0], actual_inicio[1]):
+            if vecino not in visitados_inicial and vecino not in caminos_inicial:
+                caminos_inicial[vecino] = camino_inicio + [actual_inicio]
+                cola_inicial.append((vecino, caminos_inicial[vecino]))
+
+        # Búsqueda desde el objetivo
+        actual_objetivo, camino_objetivo = cola_objetivo.popleft()
+        if actual_objetivo in visitados_inicial:
+            # Combinar los caminos desde ambos lados y devolver el primer paso
+            camino_inicio = caminos_inicial[actual_objetivo]
+            camino_total = camino_inicio + camino_objetivo[::-1]
+            return camino_total[1] if len(camino_total) > 1 else actual_objetivo
+        visitados_objetivo.add(actual_objetivo)
+        for vecino in getAdj(tablero, actual_objetivo[0], actual_objetivo[1]):
+            if vecino not in visitados_objetivo and vecino not in caminos_objetivo:
+                caminos_objetivo[vecino] = camino_objetivo + [actual_objetivo]
+                cola_objetivo.append((vecino, caminos_objetivo[vecino]))
+    
+    return inicio  # No se encontró camino, no moverse
+
+
+# Implementación de A* con colaboración para Inky
+def a_star_with_collab(tablero, inicio, objetivo, blinky_pos):
+    visitados = set()
+    cola = []
+    heapq.heappush(cola, (heuristica(inicio, objetivo), inicio, []))
+
+    while cola:
+        _, actual, camino = heapq.heappop(cola)
+
+        if actual == objetivo or heuristica(actual, blinky_pos) > 6:  # Limitar el rango de búsqueda
+            # Verificar que el camino tiene pasos
+            return camino[1] if len(camino) > 1 else inicio
+
+        if actual not in visitados:
+            visitados.add(actual)
+            for vecino in getAdj(tablero, actual[0], actual[1]):
+                if vecino not in visitados:
+                    nuevo_camino = camino + [actual]
+                    heapq.heappush(cola, (heuristica(vecino, objetivo), vecino, nuevo_camino))
+
+    return inicio  # No se encontró camino, no moverse
 
 
 
-def imprimir_tablero(tablero, pacman):
-    # Códigos ANSI para los colores
-    AZUL = "\033[44m  \033[0m"  # Fondo azul con dos espacios en blanco
-    NEGRO = "\033[40m  \033[0m"  # Fondo negro con dos espacios en blanco
-    PACMAN = "\033[43m  \033[0m"  # Círculo amarillo (texto amarillo, fondo negro)
-
-    # Imprimir el tablero con los colores adecuados
-    for i, fila in enumerate(tablero):
-        for j, celda in enumerate(fila):
-            if (j, i) == pacman:  # Si la coordenada es la de Pac-Man
-                print(PACMAN, end="")
-            elif celda == 0:
-                print(AZUL, end="")
-            else:
-                print(NEGRO, end="")
-        print()  # Salto de línea al final de cada fila
-
-def limpiar_terminal():
-    # Verifica el sistema operativo y ejecuta el comando adecuado
-    if os.name == 'nt':  # Para Windows
-        os.system('cls')
-    else:  # Para Unix/Linux/MacOS
-        os.system('clear')
+# Heurística Manhattan para greedy y A*
+def heuristica(pos1, pos2):
+    return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
