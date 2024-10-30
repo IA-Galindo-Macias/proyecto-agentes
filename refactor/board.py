@@ -43,20 +43,21 @@ class board:
     def draw(self):
         PARED = "\033[34m██\033[0m"  # Pared azul
         CAMINO = "\033[40m  \033[0m"  # Fondo negro
-        print(self.entities[0].draw())
-        for row in self.tablero:
-            for cell in row:
-                foo = self.buscar_coord((cell, row))
-                if foo != None:
-                    foo.draw()
-                    print("Hola")
 
-                if cell == 0:
+        for y, row in enumerate(self.tablero):
+            for x, cell in enumerate(row):
+                foo = self.buscar_coord((x, y))  # Usa (x, y) como coordenadas
+
+                if foo is not None:
+                    foo.draw()
+
+                elif cell == 0:
                     print(PARED, end="")
                 else:
                     print(CAMINO, end="")
-                
+
             print()
+
 
             
 
