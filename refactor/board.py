@@ -28,6 +28,8 @@ class board:
     
         self.grafo_adyacencias = generar_lista_adyacencias(self.tablero)
 
+        self.entities = []
+
 
 
     def limpiar_terminal():
@@ -113,5 +115,4 @@ class board:
         return False
 
     def update(self, tablero, pacman_pos, blinky_pos, pinky_pos, inky_pos, clyde_pos):
-
         self.imprimir_tablero_con_fantasmas(tablero, pacman_pos, blinky_pos, pinky_pos, inky_pos, clyde_pos)
