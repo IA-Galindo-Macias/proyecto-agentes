@@ -3,7 +3,7 @@ class Entities:
         self.color = color
         self.coord = coord
         
-    def update(self, matriz):
+    def update(self, matriz, lista):
         pass
     
     def draw(self):
@@ -18,26 +18,21 @@ class Pacman(Entities):
         
     def update(self, matriz, lista):
         direccion = input("w,a,s,d para mover a Pac-Man: ")
-        self.mover(matriz, self.coord, direccion)
+        self.mover(matriz, direccion)
         
     def draw(self):
         print(self.color, end="")
         
-    def mover(self,matriz, pacman_pos, direccion):
-        x, y = pacman_pos
-        nueva_pos = pacman_pos
+    def mover(self,matriz, direccion):
+        x, y = self.coord
+        nueva_coord = (0,0)
         
-        # Calcula la nueva posición en función de la dirección
-        if direccion == 'w':  # arriba
-            nueva_pos = (x-1, y)
-        elif direccion == 's':  # abajo
-            nueva_pos = (x+1, y)
-        elif direccion == 'a':  # izquierda
-            nueva_pos = (x, y-1)
-        elif direccion == 'd':  # derecha
-            nueva_pos = (x, y+1)
-        
-        if nueva_pos in matriz.get(pacman_pos, []):
-            return nueva_pos
-        return pacman_pos  # Si no es accesible, regresa la posición actual
+        match direccion:
+            case 'w': nueva_coord = (x, y - 1)
+            case 's': nueva_coord = (x, y + 1)
+            case 'a': nueva_coord = (x - 1, y)
+            case 'd': nueva_coord = (x + 1, y)
+            case _: nueva_coord = (x, y)
+            
+        self.coord = nueva_coord
             

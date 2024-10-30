@@ -3,8 +3,8 @@ from Entities import Pacman
 
 game = board()
 
-game.entities.append(Pacman((1,9)))
+game.entities.append(Pacman((1,1)))
 
-game.draw()
-
-game.update()
+while True:
+    game.draw()
+    game.update()
