@@ -59,6 +59,7 @@ class board:
             print()
 
 
+
             
 
 
@@ -115,4 +116,4 @@ class board:
 
     def update(self):
         for entidad in self.entities:
-            entidad.update(self.tablero, self.grafo_adyacencias)
+            entidad.update(self)
