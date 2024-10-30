@@ -33,17 +33,32 @@ class board:
     def limpiar_terminal():
         os.system('cls' if os.name == 'nt' else 'clear')
 
+    # Función que busca la tupla en la lista de instancias
+    def buscar_coord(self, coord):
+        for entidad in self.entities:
+            if entidad.coord == coord:
+                return entidad  # Devuelve la tupla si la encuentra
+        return None  # Devuelve None si no existe
+
     def draw(self):
         PARED = "\033[34m██\033[0m"  # Pared azul
         CAMINO = "\033[40m  \033[0m"  # Fondo negro
-
+        print(self.entities[0].draw())
         for row in self.tablero:
             for cell in row:
+                foo = self.buscar_coord((cell, row))
+                if foo != None:
+                    foo.draw()
+                    print("Hola")
+
                 if cell == 0:
                     print(PARED, end="")
                 else:
                     print(CAMINO, end="")
+                
             print()
+
+            
 
 
 
@@ -99,6 +114,3 @@ class board:
 
     def update(self, tablero, pacman_pos, blinky_pos, pinky_pos, inky_pos, clyde_pos):
         self.imprimir_tablero_con_fantasmas(tablero, pacman_pos, blinky_pos, pinky_pos, inky_pos, clyde_pos)
-
-
-print(board().draw())
