@@ -14,38 +14,59 @@ class Entities:
     def draw(self):
         print(self.color, end="")
 
+def posicion_valida(grafo, pos):
+    return pos in grafo  # Comprueba si la posición existe en el grafo de adyacencias
+
 def heuristica(pos1, pos2):
     return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
 
-def greedy_bfs_grafo(grafo, inicio, objetivo):
-    visitados = set()
-    cola = []
-    heapq.heappush(cola, (heuristica(inicio, objetivo), inicio, []))
+def bidirectional_search_grafo(grafo, inicio, objetivo):
+    visitados_inicio, visitados_objetivo = set(), set()
+    cola_inicio, cola_objetivo = deque([(inicio, [])]), deque([(objetivo, [])])
+    caminos_inicio, caminos_objetivo = {inicio: []}, {objetivo: []}
 
-    while cola:
-        _, actual, camino = heapq.heappop(cola)
-        if actual == objetivo:
-            return camino[1] if len(camino) > 1 else actual
-        if actual not in visitados:
-            visitados.add(actual)
-            for vecino in grafo.get(actual, []):
-                if vecino not in visitados:
-                    nuevo_camino = camino + [actual]
-                    heapq.heappush(cola, (heuristica(vecino, objetivo), vecino, nuevo_camino))
+    while cola_inicio and cola_objetivo:
+        # Búsqueda desde el inicio
+        actual_inicio, camino_inicio = cola_inicio.popleft()
+        if actual_inicio in visitados_objetivo:
+            camino_objetivo = caminos_objetivo[actual_inicio]
+            camino_total = camino_inicio + camino_objetivo[::-1]
+            return camino_total[1] if len(camino_total) > 1 else actual_inicio
+        visitados_inicio.add(actual_inicio)
+        for vecino in grafo.get(actual_inicio, []):
+            if vecino not in visitados_inicio and vecino not in caminos_inicio:
+                caminos_inicio[vecino] = camino_inicio + [actual_inicio]
+                cola_inicio.append((vecino, caminos_inicio[vecino]))
+
+        # Búsqueda desde el objetivo
+        actual_objetivo, camino_objetivo = cola_objetivo.popleft()
+        if actual_objetivo in visitados_inicio:
+            camino_inicio = caminos_inicio[actual_objetivo]
+            camino_total = camino_inicio + camino_objetivo[::-1]
+            return camino_total[1] if len(camino_total) > 1 else actual_objetivo
+        visitados_objetivo.add(actual_objetivo)
+        for vecino in grafo.get(actual_objetivo, []):
+            if vecino not in visitados_objetivo and vecino not in caminos_objetivo:
+                caminos_objetivo[vecino] = camino_objetivo + [actual_objetivo]
+                cola_objetivo.append((vecino, caminos_objetivo[vecino]))
     
     return inicio
+
 
 
 class Fantasma(Entities):
     
     def update(self, board):
         ent = [entity for entity in board.entities if entity.player]
-        nuevo_pos = greedy_bfs_grafo(board.grafo_adyacencias, self.coord, ent[0].coord)    
+        nuevo_pos = bidirectional_search_grafo(board.grafo_adyacencias, self.coord, ent[0].coord)
         
+        a,b = nuevo_pos
+        
+        print(nuevo_pos, board.tablero[a][b])
         self.coord = self.mover_fantasma(nuevo_pos, board.grafo_adyacencias)
     
     def mover_fantasma(self, nueva_pos, grafo):
-        if nueva_pos in grafo:
+        if posicion_valida(grafo, nueva_pos):
             return nueva_pos
         else:
             return self.coord
