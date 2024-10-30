@@ -15,16 +15,19 @@ class board:
             [0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0],
             [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0],
             [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-            [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
+            [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0],
             [0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
             [0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0],
-            [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+            [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
             [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ]
     
         self.grafo_adyacencias = self.generar_lista_adyacencias(self.tablero)
+        
+        for key, value in self.grafo_adyacencias.items():
+            print(f"{key}: {value}")
 
         self.entities = []
 
@@ -81,22 +84,25 @@ class board:
 
         return adjacentes
 
-    # Función para generar la lista de adyacencias, solo considerando celdas con valor 1
-    def generar_lista_adyacencias(self, grafo):
-        lista_adyacencias = {}
-        filas = len(grafo)
-        columnas = len(grafo[0])
+    def generar_lista_adyacencias(self, tilemap):
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        adjacency_list = {}
 
-        # Recorremos cada celda del grafo
-        for x in range(filas):
-            for y in range(columnas):
-                # Solo procesamos las celdas con valor 1
-                if grafo[x][y] == 1:
-                    adyacentes = self.getAdj(x, y)
-                    if adyacentes:  # Solo agregar si hay adyacencias
-                        lista_adyacencias[(x, y)] = adyacentes
-        
-        return lista_adyacencias
+        rows = len(tilemap)
+        cols = len(tilemap[0])
+
+        for y in range(rows):
+            for x in range(cols):
+                if tilemap[y][x] == 1:
+                    adjacency_list[(x, y)] = []
+
+                    for dx, dy in directions:
+                        nx, ny = x + dx, y + dy
+
+                        if 0 <= nx < cols and 0 <= ny < rows and tilemap[ny][nx] == 1:
+                            adjacency_list[(x, y)].append((nx, ny))
+
+        return adjacency_list
 
     
     
