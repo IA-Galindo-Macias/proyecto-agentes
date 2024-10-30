@@ -113,5 +113,6 @@ class board:
                 return True
         return False
 
-    def update(self, tablero, pacman_pos, blinky_pos, pinky_pos, inky_pos, clyde_pos):
-        self.imprimir_tablero_con_fantasmas(tablero, pacman_pos, blinky_pos, pinky_pos, inky_pos, clyde_pos)
+    def update(self):
+        for entidad in self.entities:
+            entidad.update(self.tablero, self.grafo_adyacencias)
