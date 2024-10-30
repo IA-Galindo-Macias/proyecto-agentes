@@ -16,9 +16,9 @@ class Pacman(Entities):
         color = "\033[33m██\033[0m"
         super().__init__(color, coord)
         
-    def update(self, matriz, lista):
+    def update(self, board):
         direccion = input("w,a,s,d para mover a Pac-Man: ")
-        self.mover(matriz, direccion)
+        self.mover(board.tablero, direccion)
         
     def draw(self):
         print(self.color, end="")
