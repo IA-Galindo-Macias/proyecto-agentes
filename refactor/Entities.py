@@ -33,6 +33,10 @@ class Pacman(Entities):
             case 'a': nueva_coord = (x - 1, y)
             case 'd': nueva_coord = (x + 1, y)
             case _: nueva_coord = (x, y)
+        
+        q,w = nueva_coord
+        if matriz[w][q] == 1:
+            self.coord = nueva_coord
             
-        self.coord = nueva_coord
+            
             
