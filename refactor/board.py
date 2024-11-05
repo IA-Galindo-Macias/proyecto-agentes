@@ -1,4 +1,6 @@
 import os
+from Entities import Pacman, Fantasma
+
 
 class board:
     def __init__(self):
@@ -15,11 +17,11 @@ class board:
             [0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0],
             [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0],
             [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
-            [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0],
+            [0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
             [0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
             [0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0],
-            [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0],
+            [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
             [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ]
@@ -33,7 +35,7 @@ class board:
 
 
 
-    def limpiar_terminal():
+    def limpiar_terminal(self):
         os.system('cls' if os.name == 'nt' else 'clear')
 
     # Función que busca la tupla en la lista de instancias
@@ -62,25 +64,20 @@ class board:
             print()
 
 
-
-            
-
-
-
     def getAdj(self, x, y):
         adjacentes = []
         filas = len(self.tablero)
         columnas = len(self.tablero[0])
 
         # Verificar las celdas adyacentes (izquierda, derecha, arriba, abajo)
-        if y - 1 >= 0 and self.tablero[x][y-1] == 1:
-            adjacentes.append((x, y-1))
-        if y + 1 < columnas and self.tablero[x][y+1] == 1:
-            adjacentes.append((x, y+1))
-        if x - 1 >= 0 and self.tablero[x-1][y] == 1:
-            adjacentes.append((x-1, y))
-        if x + 1 < filas and self.tablero[x+1][y] == 1:
-            adjacentes.append((x+1, y))
+        if x - 1 >= 0 and self.tablero[y][x - 1] == 1:  # Izquierda
+            adjacentes.append((x - 1, y))
+        if x + 1 < columnas and self.tablero[y][x + 1] == 1:  # Derecha
+            adjacentes.append((x + 1, y))
+        if y - 1 >= 0 and self.tablero[y - 1][x] == 1:  # Arriba
+            adjacentes.append((x, y - 1))
+        if y + 1 < filas and self.tablero[y + 1][x] == 1:  # Abajo
+            adjacentes.append((x, y + 1))
 
         return adjacentes
 
@@ -113,13 +110,17 @@ class board:
         return self.tablero
     
 
-    def verificar_colision(pacman_pos, fantasmas_pos):
-        for fantasma_pos in fantasmas_pos:
-            if pacman_pos == fantasma_pos:
-                print("¡Colisión! Pac-Man ha sido atrapado.")
-                return True
+    def verificar_colision(self):
+        pacman = next((entidad for entidad in self.entities if isinstance(entidad, Pacman)), None)
+        fantasmas = [entidad for entidad in self.entities if isinstance(entidad, Fantasma)]
+
+        if pacman and any(fantasma.coord == pacman.coord for fantasma in fantasmas):
+            print("¡Pac-Man ha sido atrapado por un fantasma! Fin del juego.")
+            return True  # Fin del juego en caso de colisión
         return False
 
     def update(self):
+        if self.verificar_colision():
+            exit()  # Termina el juego si hay colisión
         for entidad in self.entities:
             entidad.update(self)
