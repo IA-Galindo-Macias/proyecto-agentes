@@ -27,19 +27,32 @@ class Fantasma(Entities):
         
 
     def move(self, objetivo, board, other_ghosts=None):
-        """Movimiento basado en patrulla dinámica."""
+        """Movimiento basado en patrulla dinámica con manejo de colisiones."""
+        # Si Pacman está lejos, moverse hacia el punto de patrulla
         if self.heuristica(self.coord, objetivo) > 3:
-            objetivo = self.patrol_point  # Ir al punto de patrulla si Pacman está lejos
+            objetivo_real = self.patrol_point
         else:
-            objetivo = objetivo  # Si Pacman está cerca, usar lógica de persecución habitual
+            objetivo_real = objetivo  # Perseguir a Pacman si está cerca
 
-        nueva_pos = self.bfs(objetivo, board)  # Utilizamos BFS por simplicidad
+        nueva_pos = self.bfs(objetivo_real, board)  # Calcular el siguiente movimiento usando BFS
 
-        # Si llega al punto de patrulla, asigna un nuevo punto aleatorio distinto al actual
-        if nueva_pos == self.patrol_point:
+        # Si el objetivo es la patrulla y está a menos de 2 nodos, reasignar un nuevo punto
+        if objetivo_real == self.patrol_point and self.heuristica(self.coord, objetivo_real) < 2:
             posibles_puntos = list(board.getGrafo().keys())
-            posibles_puntos.remove(self.coord)  # Evitar quedarse en el mismo punto
+            posibles_puntos.remove(self.coord)  # Evitar seleccionar el punto actual
             self.patrol_point = random.choice(posibles_puntos)
+
+        # Verifica si la nueva posición está ocupada por otro fantasma
+        if other_ghosts and any(ghost.coord == nueva_pos for ghost in other_ghosts):
+            # Cambiar el punto de patrulla si hay colisión
+            posibles_puntos = list(board.getGrafo().keys())
+            posibles_puntos.remove(self.coord)  # Evitar seleccionar el punto actual
+            self.patrol_point = random.choice(posibles_puntos)
+            nueva_pos = self.coord  # Quedarse en su posición actual para el siguiente movimiento
+
+        # Actualiza la posición del fantasma
+        self.coord = nueva_pos
+
 
         # Actualiza la posición del fantasma
         self.coord = nueva_pos
