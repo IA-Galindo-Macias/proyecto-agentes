@@ -37,7 +37,7 @@ class Fantasma(Entities):
         nueva_pos = self.bfs(objetivo_real, board)  # Calcular el siguiente movimiento usando BFS
 
         # Si el objetivo es la patrulla y está a menos de 2 nodos, reasignar un nuevo punto
-        if objetivo_real == self.patrol_point and self.heuristica(self.coord, objetivo_real) < 2:
+        if objetivo_real == self.patrol_point and self.heuristica(self.coord, objetivo_real) < 3:
             posibles_puntos = list(board.getGrafo().keys())
             posibles_puntos.remove(self.coord)  # Evitar seleccionar el punto actual
             self.patrol_point = random.choice(posibles_puntos)
@@ -49,10 +49,6 @@ class Fantasma(Entities):
             posibles_puntos.remove(self.coord)  # Evitar seleccionar el punto actual
             self.patrol_point = random.choice(posibles_puntos)
             nueva_pos = self.coord  # Quedarse en su posición actual para el siguiente movimiento
-
-        # Actualiza la posición del fantasma
-        self.coord = nueva_pos
-
 
         # Actualiza la posición del fantasma
         self.coord = nueva_pos
