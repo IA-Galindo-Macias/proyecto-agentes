@@ -48,7 +48,7 @@ class Fantasma(Entities):
             # Si el fantasma no está en alerta, usa un objetivo aleatorio en su región
             if self.target_coord is None or self.coord == self.target_coord:
                 # Define un nuevo objetivo aleatorio dentro de los límites de la región
-                self.target_coord = self.get_random_target_in_region(board)
+                self.target_coord = self.get_random_valid_position(board)
             objetivo = self.target_coord
 
         # Determina el tipo de movimiento del fantasma basado en si está en alerta
@@ -63,7 +63,7 @@ class Fantasma(Entities):
                 nueva_pos = self.bfs(objetivo, board)
         else:
             # Mueve hacia el objetivo aleatorio dentro de su región
-            nueva_pos = self.a_star(objetivo, board)
+            nueva_pos = self.move_randomly_in_region(board)
 
         # Verifica que la nueva posición no sea una pared antes de actualizar la posición
         if self.is_wall(board, nueva_pos):
@@ -225,6 +225,7 @@ class Fantasma(Entities):
                         heapq.heappush(cola, (self.heuristica(vecino, objetivo), vecino, nuevo_camino))
         return self.coord
 
+
     def bidirectional_search(self, objetivo, board):
         """Búsqueda bidireccional para Pinky, retorna solo el primer paso hacia el objetivo."""
         visitados_inicial, visitados_objetivo = set(), set()
@@ -237,8 +238,9 @@ class Fantasma(Entities):
             if actual_inicio in visitados_objetivo:
                 camino_objetivo = caminos_objetivo[actual_inicio]
                 camino_total = camino_inicio + camino_objetivo[::-1]
-                # Retorna el primer paso si hay un camino, o la posición actual si no hay movimiento
-                return camino_total[1] if len(camino_total) > 1 else self.coord
+                # Retorna solo el primer paso hacia el objetivo
+                return camino_total[1] if len(camino_total) > 1 else actual_inicio
+
             visitados_inicial.add(actual_inicio)
             for vecino in board.getAdj(actual_inicio[0], actual_inicio[1]):
                 if vecino not in visitados_inicial and vecino not in caminos_inicial:
@@ -250,8 +252,9 @@ class Fantasma(Entities):
             if actual_objetivo in visitados_inicial:
                 camino_inicio = caminos_inicial[actual_objetivo]
                 camino_total = camino_inicio + camino_objetivo[::-1]
-                # Retorna el primer paso si hay un camino, o la posición actual si no hay movimiento
-                return camino_total[1] if len(camino_total) > 1 else self.coord
+                # Retorna solo el primer paso hacia el objetivo
+                return camino_total[1] if len(camino_total) > 1 else actual_objetivo
+
             visitados_objetivo.add(actual_objetivo)
             for vecino in board.getAdj(actual_objetivo[0], actual_objetivo[1]):
                 if vecino not in visitados_objetivo and vecino not in caminos_objetivo:
@@ -259,6 +262,7 @@ class Fantasma(Entities):
                     cola_objetivo.append((vecino, caminos_objetivo[vecino]))
 
         return self.coord
+
 
 
     def a_star(self, objetivo, board):
