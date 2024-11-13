@@ -20,19 +20,20 @@ class Entities:
 
 
 class Fantasma(Entities):
-    def __init__(self, name, color, coord):
+    def __init__(self, name, color, coord, vision):
         super().__init__(color, coord)
         self.name = name
         self.patrol_point = coord
+        self.vision = vision
         
 
     def move(self, objetivo, board, other_ghosts=None):
         """Movimiento basado en patrulla dinámica con manejo de colisiones."""
         # Si Pacman está lejos, moverse hacia el punto de patrulla
-        if self.heuristica(self.coord, objetivo) > 3:
+        if self.heuristica(self.coord, objetivo) > self.vision:
             objetivo_real = self.patrol_point
         else:
-            objetivo_real = objetivo  # Perseguir a Pacman si está cerca
+            objetivo_real = objetivo    # Perseguir a Pacman si está cerca
 
         nueva_pos = self.bfs(objetivo_real, board)  # Calcular el siguiente movimiento usando BFS
 
@@ -50,6 +51,7 @@ class Fantasma(Entities):
             self.patrol_point = random.choice(posibles_puntos)
             nueva_pos = self.coord  # Quedarse en su posición actual para el siguiente movimiento
 
+        print(self.name,self.coord, nueva_pos, "Patrullando")
         # Actualiza la posición del fantasma
         self.coord = nueva_pos
 
