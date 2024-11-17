@@ -98,3 +98,11 @@ class Pacman(Entities):
         q, w = nueva_coord
         if matriz[w][q] == 1:
             self.coord = nueva_coord
+
+
+class Dot(Entities):
+    def __init__(self, coord):
+        super().__init__(" .", coord)
+    
+    def update(self, board):
+        pass

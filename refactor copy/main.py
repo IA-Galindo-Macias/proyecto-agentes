@@ -1,4 +1,4 @@
-from Entities import Pacman, Fantasma
+from Entities import Pacman, Fantasma, Dot
 from board import board
 
 def main():
@@ -11,6 +11,10 @@ def main():
     clyde = Fantasma("CLYDE", "\033[38;5;214m██\033[0m", (1, 17),2 )
 
     game.entities.extend([pacman, blinky, pinky, inky, clyde])
+    
+    # Agrega un Dot en cada nodo accesible del tablero
+    for coord in game.getGrafo().keys():
+        game.entities.append(Dot(coord))
 
     while True:
         game.limpiar_terminal()

@@ -1,5 +1,5 @@
 import os
-from Entities import Pacman, Fantasma
+from Entities import Pacman, Fantasma, Dot
 
 
 class board:
@@ -113,10 +113,17 @@ class board:
     def verificar_colision(self):
         pacman = next((entidad for entidad in self.entities if isinstance(entidad, Pacman)), None)
         fantasmas = [entidad for entidad in self.entities if isinstance(entidad, Fantasma)]
+        dots = [entidad for entidad in self.entities if isinstance(entidad, Dot)]
 
         if pacman and any(fantasma.coord == pacman.coord for fantasma in fantasmas):
             print("¡Pac-Man ha sido atrapado por un fantasma! Fin del juego.")
             return True  # Fin del juego en caso de colisión
+
+        # Verificar colisión con dots
+        for dot in dots:
+            if dot.coord == pacman.coord:
+                self.entities.remove(dot) 
+
         return False
 
     def update(self):
