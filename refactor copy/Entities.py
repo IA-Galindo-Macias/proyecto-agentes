@@ -1,4 +1,5 @@
 from collections import deque
+from enum import Enum
 import heapq
 import random
 
@@ -27,33 +28,61 @@ class Fantasma(Entities):
         self.vision = vision
         
 
+
+class Fantasma(Entities):
+    class Estado(Enum):
+        PATRULLANDO = 1 # No ha visto a pacman
+        PERSIGUIENDO = 2 # esta persiguiendo a pacman
+        ALERTA = 3 # un fantasma cercano vio a pacman
+
+    def __init__(self, name, color, coord, vision):
+        super().__init__(color, coord)
+        self.name = name
+        self.patrol_point = coord
+        self.base_vision = vision  # Vision base inicial
+        self.vision = vision
+        self.state = Fantasma.Estado.PATRULLANDO  # Estado inicial
+
     def move(self, objetivo, board, other_ghosts=None):
-        """Movimiento basado en patrulla dinámica con manejo de colisiones."""
-        # Si Pacman está lejos, moverse hacia el punto de patrulla
-        if self.heuristica(self.coord, objetivo) > self.vision:
+        """Define movimiento basado en estado."""
+        self.update_state(objetivo, other_ghosts, board)
+        
+        if self.state == Fantasma.Estado.PATRULLANDO:
             objetivo_real = self.patrol_point
-        else:
-            objetivo_real = objetivo    # Perseguir a Pacman si está cerca
+        elif self.state == Fantasma.Estado.PERSIGUIENDO:
+            objetivo_real = objetivo
+        elif self.state == Fantasma.Estado.ALERTA:
+            objetivo_real = self.patrol_point  # En alerta, patrulla pero con visión ampliada.
 
-        nueva_pos = self.bfs(objetivo_real, board)  # Calcular el siguiente movimiento usando BFS
+        nueva_pos = self.bfs(objetivo_real, board)
 
-        # Si el objetivo es la patrulla y está a menos de 2 nodos, reasignar un nuevo punto
         if objetivo_real == self.patrol_point and self.heuristica(self.coord, objetivo_real) < 3:
             posibles_puntos = list(board.getGrafo().keys())
-            posibles_puntos.remove(self.coord)  # Evitar seleccionar el punto actual
+            posibles_puntos.remove(self.coord)
             self.patrol_point = random.choice(posibles_puntos)
 
-        # Verifica si la nueva posición está ocupada por otro fantasma
         if other_ghosts and any(ghost.coord == nueva_pos for ghost in other_ghosts):
-            # Cambiar el punto de patrulla si hay colisión
             posibles_puntos = list(board.getGrafo().keys())
-            posibles_puntos.remove(self.coord)  # Evitar seleccionar el punto actual
+            posibles_puntos.remove(self.coord)
             self.patrol_point = random.choice(posibles_puntos)
-            nueva_pos = self.coord  # Quedarse en su posición actual para el siguiente movimiento
+            nueva_pos = self.coord
 
-        print(self.name,self.coord, nueva_pos, "Patrullando")
-        # Actualiza la posición del fantasma
+        print(f"{self.name} ({self.state.name}): {self.coord} -> {nueva_pos}")
         self.coord = nueva_pos
+
+    def update_state(self, pacman_coord, other_ghosts, board):
+        """Actualiza el estado del fantasma según la situación."""
+        if self.heuristica(self.coord, pacman_coord) <= self.vision:
+            self.state = Fantasma.Estado.PERSIGUIENDO
+            self.vision = self.base_vision  # Reset de visión en persecución
+        elif any(ghost.state == Fantasma.Estado.PERSIGUIENDO and self.heuristica(ghost.coord, self.coord) <= 3 for ghost in other_ghosts):
+            self.state = Fantasma.Estado.ALERTA
+            self.vision = self.base_vision + 3  # Aumenta la visión en estado de alerta
+        else:
+            self.state = Fantasma.Estado.PATRULLANDO
+            self.vision = self.base_vision  # Visión normal al patrullar
+
+
 
 
     def bfs(self, objetivo, board):
