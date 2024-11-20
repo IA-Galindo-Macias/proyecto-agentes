@@ -1,5 +1,5 @@
 import os
-from Entities import Pacman, Fantasma, Dot
+from Entities import Pacman, Fantasma, Dot, SuperDot
 
 
 class board:
@@ -111,23 +111,35 @@ class board:
     
 
     def verificar_colision(self):
-        pacman = next((entidad for entidad in self.entities if isinstance(entidad, Pacman)), None)
-        fantasmas = [entidad for entidad in self.entities if isinstance(entidad, Fantasma)]
-        dots = [entidad for entidad in self.entities if isinstance(entidad, Dot)]
+            pacman = next((entidad for entidad in self.entities if isinstance(entidad, Pacman)), None)
+            fantasmas = [entidad for entidad in self.entities if isinstance(entidad, Fantasma)]
+            dots = [entidad for entidad in self.entities if isinstance(entidad, Dot)]
+            super_dots = [entidad for entidad in self.entities if isinstance(entidad, SuperDot)]
 
-        if pacman and any(fantasma.coord == pacman.coord for fantasma in fantasmas):
-            print("¡Pac-Man ha sido atrapado por un fantasma! Fin del juego.")
-            return True  # Fin del juego en caso de colisión
+            if pacman and any(fantasma.coord == pacman.coord for fantasma in fantasmas):
+                print("¡Pac-Man ha sido atrapado por un fantasma! Fin del juego.")
+                return True  # Fin del juego en caso de colisión con fantasma
 
-        # Verificar colisión con dots
-        for dot in dots:
-            if dot.coord == pacman.coord:
-                self.entities.remove(dot) 
+            # Verificar colisión con dots
+            for dot in dots:
+                if dot.coord == pacman.coord:
+                    self.entities.remove(dot)  # Eliminar el dot cuando Pac-Man lo come
 
-        return False
+            # Verificar colisión con super dots
+            for super_dot in super_dots:
+                if super_dot.coord == pacman.coord:
+                    self.entities.remove(super_dot)  # Eliminar el super dot
+                    pacman.activate_super_power([fantasma for fantasma in self.entities if isinstance(fantasma, Fantasma)])  # Pasa la lista de fantasmas
+
+
+            return False
 
     def update(self):
         if self.verificar_colision():
             exit()  # Termina el juego si hay colisión
         for entidad in self.entities:
-            entidad.update(self)
+            if isinstance(entidad, Pacman):
+                entidad.update(self, [fantasma for fantasma in self.entities if isinstance(fantasma, Fantasma)])
+            else:
+                entidad.update(self)
+

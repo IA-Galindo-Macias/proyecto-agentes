@@ -1,4 +1,4 @@
-from Entities import Pacman, Fantasma, Dot
+from Entities import Pacman, Fantasma, Dot, SuperDot
 from board import board
 
 def main():
@@ -12,12 +12,29 @@ def main():
 
     game.entities.extend([pacman, blinky, pinky, inky, clyde])
     
+    # Agrega Super Dots en posiciones específicas (por ejemplo, algunos puntos en el tablero)
+    super_dot_coords = [(1, 9), (9, 9), (17, 9), (7, 5), (11, 13)]  # Coordenadas para Super Dots
+
+    # Verificar que la coordenada esté en un camino y no haya un Dot en la misma posición
+    for coord in super_dot_coords:
+        x, y = coord
+        if game.tablero[x][y] == 1:  # Asegura que solo se coloque en caminos
+            # Verificar si ya existe un Dot en esa posición
+            if not any(isinstance(entity, Dot) and entity.coord == coord for entity in game.entities):
+                game.entities.append(SuperDot(coord))
+        else:
+            print(f"Coordenada {coord} no es válida para Super Dot (es pared).")
+
     # Agrega un Dot en cada nodo accesible del tablero
     for coord in game.getGrafo().keys():
-        game.entities.append(Dot(coord))
+        # Solo agrega Dot si no hay un Super Dot en la misma posición
+        if not any(isinstance(entity, SuperDot) and entity.coord == coord for entity in game.entities):
+            game.entities.append(Dot(coord))
+
+
 
     while True:
-        game.limpiar_terminal()
+        #game.limpiar_terminal()
 
         game.draw()
 
